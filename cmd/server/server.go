@@ -5,20 +5,21 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"redis-lite/kvstore"
 	"redis-lite/resp"
 	"strings"
 	"sync"
 )
 
 type RedisServer struct {
-	data  map[string]string
-	mutex sync.Mutex
+	data  *kvstore.HashTable
+	mutex sync.RWMutex
 }
 
 func NewRedisServer() *RedisServer {
 	return &RedisServer{
-		data:  make(map[string]string),
-		mutex: sync.Mutex{},
+		data:  kvstore.NewHashTable(),
+		mutex: sync.RWMutex{},
 	}
 }
 
@@ -33,9 +34,6 @@ func (rs *RedisServer) sendError(writer *bufio.Writer, errorStr string) {
 }
 
 func (rs *RedisServer) handlePing(writer *bufio.Writer) {
-	rs.mutex.Lock()
-	defer rs.mutex.Unlock()
-
 	pong := resp.SimpleString{Value: "PONG"}
 	_, err := writer.Write(resp.Serialize(pong))
 	if err != nil {
@@ -45,9 +43,6 @@ func (rs *RedisServer) handlePing(writer *bufio.Writer) {
 }
 
 func (rs *RedisServer) handleEcho(writer *bufio.Writer, parts []string) {
-	rs.mutex.Lock()
-	defer rs.mutex.Unlock()
-
 	var echo resp.BulkString
 	if len(parts) > 1 {
 		echo = resp.BulkString{Value: strings.Join(parts[1:], " ")}
@@ -62,15 +57,15 @@ func (rs *RedisServer) handleEcho(writer *bufio.Writer, parts []string) {
 }
 
 func (rs *RedisServer) handleGetCommand(writer *bufio.Writer, parts []string) {
-	rs.mutex.Lock()
-	defer rs.mutex.Unlock()
+	rs.mutex.RLock()
+	defer rs.mutex.RUnlock()
 
 	if len(parts) != 2 {
 		rs.sendError(writer, "ERR wrong number of arguments for 'get' command")
 		return
 	}
 
-	value, ok := rs.data[parts[1]]
+	value, ok := rs.data.Get(parts[1])
 	if !ok {
 		serverResp := resp.BulkString{IsNull: true}
 		_, err := writer.Write(resp.Serialize(serverResp))
@@ -80,7 +75,7 @@ func (rs *RedisServer) handleGetCommand(writer *bufio.Writer, parts []string) {
 		}
 	}
 
-	serverResp := resp.BulkString{Value: value, IsNull: false}
+	serverResp := resp.BulkString{Value: value.(string), IsNull: false}
 	_, err := writer.Write(resp.Serialize(serverResp))
 	if err != nil {
 		log.Printf("Error sending OK response")
@@ -97,7 +92,8 @@ func (rs *RedisServer) handleSetCommand(writer *bufio.Writer, parts []string) {
 		return
 	}
 
-	rs.data[parts[1]] = parts[2]
+	// rs.data[parts[1]] = parts[2]
+	rs.data.Insert(parts[1], parts[2])
 	serverResp := resp.SimpleString{Value: "OK"}
 	_, err := writer.Write(resp.Serialize(serverResp))
 	if err != nil {
@@ -107,9 +103,6 @@ func (rs *RedisServer) handleSetCommand(writer *bufio.Writer, parts []string) {
 }
 
 func (rs *RedisServer) handleHelp(writer *bufio.Writer) {
-	rs.mutex.Lock()
-	defer rs.mutex.Unlock()
-
 	help := resp.BulkString{Value: "PING: Returns PONG\nECHO <message>: Returns the provided message\nGET <key>: Returns the value associated with the key\nSET <key> <value>: Sets the value for the given key"}
 	_, err := writer.Write(resp.Serialize(help))
 	if err != nil {

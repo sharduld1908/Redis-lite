@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"bufio"
 	"bytes"
 	"reflect"
 	"testing"
@@ -167,7 +168,8 @@ func TestDeserialize_SimpleString(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := SimpleString{Value: "OK"}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -182,7 +184,8 @@ func TestDeserialize_Error(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := Error{Value: "ERR something"}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -197,7 +200,8 @@ func TestDeserialize_Integer(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := Integer{Value: 123}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -212,7 +216,8 @@ func TestDeserialize_BulkString(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := BulkString{Value: "hello"}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -225,7 +230,8 @@ func TestDeserialize_BulkString(t *testing.T) {
 	reader = bytes.NewReader(input)
 	expected = BulkString{IsNull: true}
 
-	result, err = Deserialize(reader)
+	breader = bufio.NewReader(reader)
+	result, err = Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -246,7 +252,8 @@ func TestDeserialize_Array(t *testing.T) {
 		},
 	}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -258,7 +265,9 @@ func TestDeserialize_Array(t *testing.T) {
 	input = []byte("*-1\r\n")
 	reader = bytes.NewReader(input)
 	expected = Array{IsNull: true}
-	result, err = Deserialize(reader)
+
+	breader = bufio.NewReader(reader)
+	result, err = Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -271,7 +280,8 @@ func TestDeserialize_InvalidType(t *testing.T) {
 	input := []byte("%invalid\r\n")
 	reader := bytes.NewReader(input)
 
-	_, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	_, err := Deserialize(breader)
 	if err == nil {
 		t.Errorf("Deserialize() should return an error for invalid type")
 	}
@@ -282,7 +292,8 @@ func TestDeserialize_BulkString_Empty(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := BulkString{Value: ""}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -301,7 +312,8 @@ func TestDeserialize_Array_SingleBulkString(t *testing.T) {
 		},
 	}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -321,7 +333,8 @@ func TestDeserialize_Array_TwoBulkStrings(t *testing.T) {
 		},
 	}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -341,7 +354,8 @@ func TestDeserialize_Array_GetKeyValue(t *testing.T) {
 		},
 	}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -356,7 +370,8 @@ func TestDeserialize_SimpleString_HelloWorld(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := SimpleString{Value: "hello world"}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -371,7 +386,8 @@ func TestDeserialize_Error_ErrorMessage(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := Error{Value: "Error message"}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}
@@ -386,7 +402,8 @@ func TestDeserialize_BulkString_Null(t *testing.T) {
 	reader := bytes.NewReader(input)
 	expected := BulkString{IsNull: true}
 
-	result, err := Deserialize(reader)
+	breader := bufio.NewReader(reader)
+	result, err := Deserialize(breader)
 	if err != nil {
 		t.Fatalf("Deserialize() error = %v", err)
 	}

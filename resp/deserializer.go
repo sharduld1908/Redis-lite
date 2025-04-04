@@ -3,30 +3,27 @@ package resp
 import (
 	"bufio"
 	"errors"
-	"io"
 	"strconv"
 	"strings"
 )
 
-func Deserialize(reader io.Reader) (Value, error) {
-	buffReader := bufio.NewReader(reader)
-
-	firstByte, err := buffReader.ReadByte()
+func Deserialize(reader *bufio.Reader) (Value, error) {
+	firstByte, err := reader.ReadByte()
 	if err != nil {
 		return nil, err
 	}
 
 	switch firstByte {
 	case '+':
-		return DeserializerSimpleString(buffReader)
+		return DeserializerSimpleString(reader)
 	case '-':
-		return DeserializerError(buffReader)
+		return DeserializerError(reader)
 	case ':':
-		return DeserializerInteger(buffReader)
+		return DeserializerInteger(reader)
 	case '$':
-		return DeserializerBulkString(buffReader)
+		return DeserializerBulkString(reader)
 	case '*':
-		return DeserializerArray(buffReader)
+		return DeserializerArray(reader)
 	default:
 		return nil, errors.New("unknown RESP data type")
 	}
