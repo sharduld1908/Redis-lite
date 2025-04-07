@@ -84,16 +84,18 @@ func (rs *RedisServer) handleGetCommand(writer *bufio.Writer, parts []string) {
 }
 
 func (rs *RedisServer) handleSetCommand(writer *bufio.Writer, parts []string) {
-	rs.mutex.Lock()
-	defer rs.mutex.Unlock()
+	
 
 	if len(parts) != 3 {
 		rs.sendError(writer, "ERR syntax error")
 		return
 	}
 
-	// rs.data[parts[1]] = parts[2]
+	rs.mutex.Lock()	
 	rs.data.Insert(parts[1], parts[2])
+	rs.mutex.Unlock()
+
+	
 	serverResp := resp.SimpleString{Value: "OK"}
 	_, err := writer.Write(resp.Serialize(serverResp))
 	if err != nil {

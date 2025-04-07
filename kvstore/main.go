@@ -7,7 +7,7 @@ import (
 
 type Node struct {
 	key   string
-	value interface{}
+	value any
 	next  *Node
 }
 
@@ -42,7 +42,7 @@ func (ht *HashTable) getIndex(key string) int {
 	return index
 }
 
-func (ht *HashTable) Insert(key string, value interface{}) {
+func (ht *HashTable) Insert(key string, value any) {
 	if float64(ht.size)/float64(ht.capacity) >= loadFactorLimit {
 		ht.resize()
 	}
@@ -68,7 +68,7 @@ func (ht *HashTable) Insert(key string, value interface{}) {
 	ht.size++
 }
 
-func (ht *HashTable) Get(key string) (interface{}, bool) {
+func (ht *HashTable) Get(key string) (any, bool) {
 	index := ht.getIndex(key)
 	currentNode := ht.buckets[index]
 
