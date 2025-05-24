@@ -1,0 +1,29 @@
+name: “PR LLM Code Review”
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run LLM Code Reviewer
+        uses: tusgino/llm-code-reviewer@develop
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # add whichever LLM you like:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          # (optional) anthopic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # (optional) gemini_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          # choose your primary model, e.g. “gpt-4”
+          model: gpt-4
+          # skip reviewing test files, docs, etc.
+          exclude: |
+            **/*.md
+            **/tests/**
+          # (optional) change comment language
+          comment_language: english
