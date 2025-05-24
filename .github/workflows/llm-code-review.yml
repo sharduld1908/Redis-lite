@@ -18,7 +18,7 @@ jobs:
           # add whichever LLM you like:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           # (optional) anthopic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # (optional) gemini_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          gemini_api_key: ${{ secrets.GOOGLE_API_KEY }}
           # choose your primary model, e.g. “gpt-4”
           model: gpt-4
           # skip reviewing test files, docs, etc.
